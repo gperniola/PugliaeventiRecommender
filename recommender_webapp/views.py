@@ -11,6 +11,7 @@ from recommender_webapp.forms import ProfileForm, UserRegisterForm, SearchNearPl
 from recommender_webapp.models import Comune, Distanza, Place, Mood, Companionship, Rating, User, Profile, Event
 
 
+
 @csrf_protect
 def user_login(request):
     """
@@ -128,13 +129,16 @@ def profile_configuration(request):
 
         if len(user_ratings) >= (constant.RATINGS_PER_CONTEXT_CONF * constant.CONTEXTS):
             # Profile configuration finished. We must add user data to LightFM dataset and recreate the model
+            print("need help 01")
             if not request.user.profile.first_configuration:
                 lightfm_manager.add_user(request.user.id, request.user.profile.location, user_contexts, user_ratings)
                 request.user.profile.first_configuration = True
                 request.user.save()
+                print("need help 02")
             return redirect('/')
 
         else:
+            print("help!!!")
             percentage_completion = int(
                 (len(user_ratings) * 100 / (constant.RATINGS_PER_CONTEXT_CONF * constant.CONTEXTS)))
 

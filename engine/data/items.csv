@@ -11,7 +11,7 @@
 12,Lo Sturno,Parabita,0,1,1,0,0,0,0,1,0,0,0
 14,Skipper Arte Cafè,Fasano,0,1,0,0,0,0,0,0,0,0,0
 16,La Super Pizza da Franco,Bari,0,0,1,0,0,0,0,0,0,0,0
-17,Capolinea Café,Ceglie Messapica,0,0,1,0,0,0,0,1,0,0,0
+17,Capolinea Cafe,Ceglie Messapica,0,0,1,0,0,0,0,1,0,0,0
 18,Falsopepe,Massafra,0,1,1,0,0,0,0,0,0,0,0
 20,Gaonas Officine del Gusto ,Martina Franca,0,0,1,0,0,0,0,1,0,0,0
 21,Miseria e Nobiltà,Alberobello,0,1,1,0,0,0,0,0,0,0,0
@@ -22,7 +22,7 @@
 26,La Torre di Merlino,Lecce,0,0,1,0,0,0,0,0,0,0,0
 27,Nautilus,Taranto,0,1,0,0,0,0,0,0,0,0,0
 28,Le Tagghiate,Lecce,0,0,1,0,0,0,0,0,0,0,0
-29,Wunderbar Café,Monopoli,0,1,1,0,0,0,0,0,0,0,0
+29,Wunderbar Cafe,Monopoli,0,1,1,0,0,0,0,0,0,0,0
 31,Moi Moi,Lecce,0,1,0,0,0,0,0,0,0,0,0
 32,Carpe Diem,Gallipoli,0,0,1,0,0,0,0,0,0,0,0
 33,Godot food and passion,Lecce,0,0,1,0,0,0,0,1,0,0,0
@@ -4748,5 +4748,5 @@
 8602,Chiostro di San Francesco,Ostuni,0,0,0,0,0,0,0,0,1,0,0
 8603,Masseria Torre Tresca-Resta,Bari,0,0,0,0,0,0,0,0,1,0,0
 8604,Bar Nuove Dimensioni,Crispiano,0,1,1,0,0,1,0,0,0,0,0
-8605,B&amp;B La Grotta Del Re,Grottaglie,0,0,0,0,1,0,0,0,0,0,0
-8606,#Apulia,Ostuni,0,1,1,0,0,1,0,0,0,0,0
+8605,BB La Grotta Del Re,Grottaglie,0,0,0,0,1,0,0,0,0,0,0
+8606,Apulia,Ostuni,0,1,1,0,0,1,0,0,0,0,0

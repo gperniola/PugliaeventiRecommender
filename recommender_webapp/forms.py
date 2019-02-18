@@ -63,7 +63,7 @@ class SearchRecommendationDistanceRange(ChoiceEnum):
     km60 = 60
 
 
-# This form is used for searching recommendations
+
 class SearchRecommendationForm(forms.Form):
     mood = forms.ChoiceField(
         required=True,
@@ -84,7 +84,7 @@ class SearchRecommendationForm(forms.Form):
     any_events = forms.BooleanField(initial=False, required=False, label='Any events')
 
 
-# This form is used for adding a new rating
+
 class AddRatingForm(forms.Form):
     mood = forms.ChoiceField(
         required=True,
@@ -102,9 +102,7 @@ class SearchPlacesDistanceRange(ChoiceEnum):
     __order__ = 'km5 km10'
     km5 = 5
     km10 = 10
-    # km30 = 30
-    # km40 = 40
-    # km50 = 50
+
 
 
 class SearchNearPlacesForm(forms.Form):
@@ -126,7 +124,7 @@ class FullProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ('location', 'profession', 'birth_date', 'bio')
-        # widgets={'birth_date': forms.DateInput(attrs={'class': 'datepicker'})}    # Another type of datepicker
+
 
     location = AutoCompleteField('cities')
 
