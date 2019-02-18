@@ -1,0 +1,17 @@
+certifi==2018.11.29
+chardet==3.0.4
+datedelta==1.2
+Django==2.1.5
+django-ajax-selects==1.7.1
+django-cors-headers==2.4.0
+django-crispy-forms==1.7.2
+djangorestframework==3.9.1
+idna==2.8
+lightfm==1.15
+numpy==1.16.0
+psycopg2==2.7.7
+pytz==2018.9
+requests==2.21.0
+scipy==1.2.0
+urllib3==1.24.1
+virtualenv==16.3.0
