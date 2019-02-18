@@ -166,11 +166,9 @@ class Rating(models.Model):
     place = models.ForeignKey(Place, on_delete=models.PROTECT, blank=False)
     rating = models.IntegerField(blank=False, default=DEFAULT_RATING)
 
-    # class Meta:
-    #    unique_together = ('user', 'mood', 'companionship', 'place')
 
     def __str__(self):
-        return str(self.user.email) + '|' + str(self.mood) + '|' + str(self.companionship) \
+        return str(self.user.user.email) + '|' + str(self.mood) + '|' + str(self.companionship) \
                + '|' + str(self.place.placeId) + '|' + str(self.rating)
 
 
