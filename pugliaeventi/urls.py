@@ -34,6 +34,7 @@ urlpatterns = [
     path('event/<int:event_id>/', views.event_details, name='event_details'),
     path('ratings/<int:place_id>/<int:mood>/<int:companionship>/', views.add_rating_config, name='add_rating_conf'),
 
-    # place it at whatever base url you like
-    url(r'^ajax_select/', include(ajax_select_urls))
+
+    url(r'^ajax_select/', include(ajax_select_urls)),
+    url(r'^', include('api.urls'))
 ]

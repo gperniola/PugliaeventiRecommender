@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     'recommender_webapp.apps.RecommenderConfig',
     'crispy_forms',
     'ajax_select',
+    'rest_framework',
+	'corsheaders',
+    'api',
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
@@ -52,7 +55,18 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	'corsheaders.middleware.CorsMiddleware',  
+    'django.middleware.common.CommonMiddleware',  
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_WHITELIST = (
+    'localhost:8080',
+)
+CORS_ORIGIN_REGEX_WHITELIST = (
+    'localhost:8080',
+)
 
 ROOT_URLCONF = 'pugliaeventi.urls'
 
@@ -78,12 +92,22 @@ WSGI_APPLICATION = 'pugliaeventi.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
+DATABASE_ROUTERS = ['api.dbrouters.PugliaEventiRouter']
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'django_pugliaeventi',
+        'NAME': 'jedi1',
         'USER': 'postgres',
-        'PASSWORD': 'Frapama29',
+        'PASSWORD': 'postgres',
+        'HOST': 'localhost',
+        'PORT': 5432
+    },
+    'PugliaEventi': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'PugliaEventi',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
         'HOST': 'localhost',
         'PORT': 5432
     }

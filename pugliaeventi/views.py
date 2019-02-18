@@ -30,26 +30,37 @@ def index(request):
     recommended_places = []
     # places_dict = data_loader.data_in_memory['places_dict']
 
+    print("PAGE IS: index")
+
     if request.user.is_authenticated:
+
+        print("index.USER IS AUTHENTICATED")
 
         # Check if the user has completed the profile configuration
         user_ratings = Rating.objects.filter(user=request.user.profile)
         if len(user_ratings) < (constant.RATINGS_PER_CONTEXT_CONF * constant.CONTEXTS):
+            print("index.not enough ratings")
             return redirect('/profile_configuration')
         else:
+            print("index.user has enough ratings")
             search_rec_form = SearchRecommendationForm(request.POST or None)
             # search_rec_form.fields['mood'].disabled = True
             initial_mood = (Mood.joyful.name, Mood.joyful.value)
             search_rec_form.fields['mood'].initial = initial_mood
 
             if search_rec_form.is_valid():
+                print("index.search forms is valid")
                 mood = search_rec_form.cleaned_data.get('mood')
                 companionship = search_rec_form.cleaned_data.get('companionship')
                 distance = search_rec_form.cleaned_data.get('km_range')
                 any_events = search_rec_form.cleaned_data.get('any_events')
                 lightfm_user_id = constant.DJANGO_USER_ID_BASE_START_LIGHTFM + request.user.id
+                print("index.user id is : " + str(request.user.id) + " lightfm user id is: " + str(lightfm_user_id))
                 contextual_lightfm_user_id = str(lightfm_user_id) + str(mood) + str(companionship)
+                print("index.contextual_lightfm_user_id is: " + contextual_lightfm_user_id)
 
+                #cerco le raccomandazioni
+                print("index calling lightfm_manager.find_recommendations to get recs")
                 recommended_places = lightfm_manager.find_recommendations(
                     contextual_lightfm_user_id,
                     request.user.profile.location,
@@ -62,8 +73,5 @@ def index(request):
                 'email_splitted': request.user.email.split('@')[0],
                 'recommended_places': recommended_places
             }
-
+            print("index.context is: " + str(context))
     return render(request, 'index.html', context)
-
-
-
