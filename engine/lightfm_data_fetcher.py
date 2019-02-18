@@ -4,6 +4,18 @@ import os
 import numpy as np
 import scipy.sparse as sp
 
+from api.models import Place
+
+
+def load_items_from_db():
+    db_items = []
+    for line in Place.objects.all():
+            db_items.append(str(line.placeId) + "," + str(line.name).replace(",", "-") + "," + str(line.location).replace(",", "-") + "," + str(line.freeEntry) + "," + \
+            str(line.bere) + "," + str(line.mangiare) + "," + str(line.benessere) + "," + str(line.dormire) + "," + str(line.goloso) + "," \
+            + str(line.libri) + "," + str(line.romantico) + "," + str(line.museo) + "," + str(line.spiaggia) + "," + str(line.teatro))
+    return db_items
+
+
 
 def _read_raw_data():
     """
@@ -12,14 +24,20 @@ def _read_raw_data():
     script_dir = os.path.dirname(__file__)
     ratings_train = open(os.path.join(script_dir, 'data/ratings_train.csv'), 'rb')
     ratings_test = open(os.path.join(script_dir, 'data/ratings_test.csv'), 'rb')
-    items = open(os.path.join(script_dir, 'data/items.csv'), 'rb')
+    #items = open(os.path.join(script_dir, 'data/items.csv'), 'rb')
+    items = load_items_from_db()
     users = open(os.path.join(script_dir, 'data/users.csv'), 'rb')
     labels_item = open(os.path.join(script_dir, 'data/labels_item.csv'), 'rb')
     labels_user = open(os.path.join(script_dir, 'data/labels_user.csv'), 'rb')
 
+
+
+
+
     return (ratings_train.read().decode().split('\n'),
             ratings_test.read().decode().split('\n'),
-            items.read().decode().split('\n'),
+            #items.read().decode().split('\n'),
+            items,
             users.read().decode().split('\n'),
             labels_item.read().decode(errors='ignore').split('\n'),
             labels_user.read().decode(errors='ignore').split('\n'))
@@ -140,10 +158,13 @@ def _parse_item_user_metadata(num_items, item_metadata_raw, item_tags_raw, num_u
         name = splt[1]
 
         iid_feature_labels[iid] = name
-
+        #print (line)
+        #print (splt)
         item_tags = [idx for idx, val in
                        enumerate(splt[3:])
                        if int(val) > 0]
+
+        #print("iid: " + str(iid) + " --- " + str(item_tags))
 
         for tid in item_tags:
             item_tag_features[iid, tid] = 1.0
@@ -165,8 +186,10 @@ def _parse_item_user_metadata(num_items, item_metadata_raw, item_tags_raw, num_u
                        enumerate(splt[2:])
                        if int(val) > 0]
 
+        #print("uid: " + str(uid) + " --- " + str(user_tags))
         for tid in user_tags:
             user_tag_features[uid, tid] = 1.0
+
 
     return (iid_features, iid_feature_labels, item_tag_features.tocsr(), item_tag_feature_labels,
             uid_features, uid_feature_labels, user_tag_features.tocsr(), user_tag_feature_labels)
@@ -255,11 +278,14 @@ def fetch_pugliaeventi(indicator_features=True, tag_features=False, min_rating=0
     # Load raw data
     (ratings_train, ratings_test, items, users, labels_item, labels_user) = _read_raw_data()
 
+    #print(items)
+
     # Figure out the dimensions
     num_users, num_items = _get_dimensions(_parse(ratings_train), _parse(ratings_test))
 
     # The maximum item_id is not included into the ratings set. So, I have to set the correct number of items
     num_items = _parse_items(items)[-1]
+    #print (num_items)
 
     # Load train interactions
     train = _build_interaction_matrix(num_users,
