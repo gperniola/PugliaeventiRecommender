@@ -23,6 +23,39 @@ def addUserDb(username, location):
 
 # Create your views here.
 
+class getAllPlaces(APIView):
+    def post(self, request, *args, **kwargs):
+        location = str(request.data.get('location'))
+        range = int(request.data.get('range'))
+        only_with_events = int(request.data.get('only-with-events'))
+
+        filtered_places = Place.objects.all()
+        locations_in_range = []
+        if location != '':
+            locations_in_range.append(location)
+            if range > 0:
+                locations_queryset = Distanza.objects.filter(cittaA=location,distanza__lte=range).order_by('distanza')
+                for loc in locations_queryset:
+                    locations_in_range.append(loc.cittaB)
+            filtered_places = filtered_places.filter(location__in=locations_in_range).order_by('location')
+
+        
+        if only_with_events == 1:
+            date_today = datetime.today().date()
+            places_with_events = []
+            for p in filtered_places:
+                if(Event.objects.filter(place=p.name, date_to__gte=date_today).exists()):
+                    places_with_events.append(p.placeId)
+                    print(str(p.placeId) + " has events")
+            filtered_places = filtered_places.filter(placeId__in=places_with_events)
+
+
+        serializer = PlaceSerializer(instance=filtered_places, many=True, context={'user_location':location})
+        return JsonResponse(serializer.data,safe=False, status=201)
+
+
+
+
 class getAllEvents(APIView):
     def post(self, request, *args, **kwargs):
         location = str(request.data.get('location'))

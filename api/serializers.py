@@ -1,15 +1,74 @@
 from rest_framework import serializers
 from .models import Utente, Place, Event, Distanza, PrevisioniEventi, PrevisioniComuni
 
+from datetime import datetime
+
 class UtenteSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Utente
 		fields = ('id', 'username', 'location', 'first_configuration')
 
 class PlaceSerializer(serializers.ModelSerializer):
+	distanza = serializers.SerializerMethodField('get_distanza_AB')
+	centro_distanza = serializers.SerializerMethodField('get_centro')
+	tags = serializers.SerializerMethodField('get_taglist')
+	eventi_programmati = serializers.SerializerMethodField('get_eventi')
+
 	class Meta:
 		model = Place
-		fields = ('placeId', 'name', 'location')
+		fields = ('placeId', 'name','tipo', 'location', 'indirizzo', 'location', 'telefono' ,'sitoweb', 'chiusura', 'link', 'distanza', 'centro_distanza', 'tags', 'eventi_programmati')
+
+	def get_centro(self,obj):
+		user_location = self.context.get("user_location")
+		if user_location != '':
+			return user_location
+		else: return ''
+
+	def get_distanza_AB(self,obj):
+		user_location = self.context.get("user_location")
+		place_location = obj.location
+		if user_location != '' and user_location != place_location:
+			distanza_AB = Distanza.objects.filter(cittaA=user_location, cittaB=place_location)
+			return distanza_AB[0].distanza
+		else: return ''
+
+	def get_taglist(self,obj):
+		tags = []
+		if obj.informale == 1: tags.append('informale')
+		if obj.raffinato == 1: tags.append('raffinato')
+		if obj.benessere == 1: tags.append('benessere')
+		if obj.bere == 1: tags.append('bere')
+		if obj.mangiare == 1: tags.append('mangiare')
+		if obj.dormire == 1: tags.append('dormire')
+		if obj.goloso == 1: tags.append('goloso')
+		if obj.libri == 1: tags.append('libri')
+		if obj.romantico == 1: tags.append('romantico')
+		if obj.museo == 1: tags.append('museo')
+		if obj.spiaggia == 1: tags.append('spiaggia')
+
+		if obj.freeEntry == 1: tags.append('free entry')
+		if obj.arte == 1: tags.append('arte')
+		if obj.avventura == 1: tags.append('avventura')
+		if obj.cinema == 1: tags.append('cinema')
+		if obj.cittadinanza == 1: tags.append('cittadinanza')
+		if obj.musica_classica == 1: tags.append('musica classica')
+		if obj.geek == 1: tags.append('geek')
+		if obj.bambini == 1: tags.append('bambini')
+		if obj.folklore == 1: tags.append('folklore')
+		if obj.cultura == 1: tags.append('cultura')
+		if obj.jazz == 1: tags.append('jazz')
+		if obj.concerti == 1: tags.append('concerti')
+		if obj.teatro == 1: tags.append('teatro')
+		if obj.vita_notturna == 1: tags.append('vita notturna')
+		return tags
+
+	def get_eventi(self,obj):
+		eventi_programmati = []
+		date_today = datetime.today().date()
+		for ev in Event.objects.filter(place=obj.name, date_to__gte=date_today):
+			eventi_programmati.append({"titolo":ev.title,"link":ev.link,"data_da":ev.date_from,"data_a":ev.date_to})
+		return eventi_programmati
+
 
 class PrevisioniComuniSerializer(serializers.ModelSerializer):
 	stagione = serializers.SerializerMethodField('get_stagione_giorno')
