@@ -105,10 +105,10 @@ def learn_model(force_model_creation=False):
         with open(os.path.join(script_dir, MODEL_CHECKPOINT_PATH), 'rb') as fle:
             model = pickle.load(fle)
     else:
-        print("Train details\n: ")
-        print(repr(data['train']))
-        print("\nTest details\n: ")
-        print(repr(data['test']))
+        #print("Train details\n: ")
+        #print(repr(data['train']))
+        #print("\nTest details\n: ")
+        #print(repr(data['test']))
 
         item_features = data['item_features']
         item_tag_labels = data['item_feature_labels']
