@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Utente, Place, Event, Distanza, PrevisioniEventi, PrevisioniComuni
+from .models import Utente, Place, Event, Distanza, PrevisioniEventi, PrevisioniComuni, Valutazione
 
 from datetime import datetime
 
@@ -13,10 +13,11 @@ class PlaceSerializer(serializers.ModelSerializer):
 	centro_distanza = serializers.SerializerMethodField('get_centro')
 	tags = serializers.SerializerMethodField('get_taglist')
 	eventi_programmati = serializers.SerializerMethodField('get_eventi')
+	valutato = serializers.SerializerMethodField('get_is_valutato')
 
 	class Meta:
 		model = Place
-		fields = ('placeId', 'name','tipo', 'location', 'indirizzo', 'location', 'telefono' ,'sitoweb', 'chiusura', 'link', 'distanza', 'centro_distanza', 'tags', 'eventi_programmati')
+		fields = ('placeId', 'name','tipo', 'location', 'indirizzo', 'location', 'telefono' ,'sitoweb', 'chiusura', 'link', 'distanza', 'centro_distanza', 'tags', 'eventi_programmati', 'valutato')
 
 	def get_centro(self,obj):
 		user_location = self.context.get("user_location")
@@ -68,6 +69,13 @@ class PlaceSerializer(serializers.ModelSerializer):
 		for ev in Event.objects.filter(place=obj.name, date_to__gte=date_today):
 			eventi_programmati.append({"titolo":ev.title,"link":ev.link,"data_da":ev.date_from,"data_a":ev.date_to})
 		return eventi_programmati
+
+	def get_is_valutato(self,obj):
+		user_id = self.context.get("user_id")
+		if Valutazione.objects.filter(place = obj.placeId, user=user_id).exists():
+			return True
+		else:
+			return False
 
 
 class PrevisioniComuniSerializer(serializers.ModelSerializer):
