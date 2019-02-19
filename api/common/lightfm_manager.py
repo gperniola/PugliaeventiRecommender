@@ -255,6 +255,12 @@ def find_events_recommendations(user, user_location, distance, weather_condition
         weather_filtered_events = events
     ## DEBUG:
     print("+ N. of events after weather filtering: " + str(len(weather_filtered_events)))
+    ####### DEBUG EVENTI ##########
+    i = 1
+    for ev in weather_filtered_events:
+        print(str(i) + ") +++ " + ev.title + "|" + ev.place + "|" + str(ev.comune) + "|" + str(ev.date_from) + " - " + str(ev.date_to))
+        i = i + 1
+    ###############################
 
     recommended_events = []
     #for place in recommended_places:
@@ -270,10 +276,10 @@ def find_events_recommendations(user, user_location, distance, weather_condition
     print("+ Returning recommended_events")
 
     ####### DEBUG EVENTI ##########
-    i = 1
-    for ev in recommended_events:
-        print(str(i) + ") +++ " + ev.title + "|" + ev.place + "|" + str(ev.comune) + "|" + str(ev.date_from) + " - " + str(ev.date_to))
-        i = i + 1
+    #i = 1
+    #for ev in recommended_events:
+    #    print(str(i) + ") +++ " + ev.title + "|" + ev.place + "|" + str(ev.comune) + "|" + str(ev.date_from) + " - " + str(ev.date_to))
+    #    i = i + 1
 
     #for place in recommended_places:
     #    if Event.objects.filter(place=place.name, date_to__gte=datetime.today().date()).exists():
