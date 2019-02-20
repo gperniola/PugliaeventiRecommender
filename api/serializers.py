@@ -184,3 +184,9 @@ class EventSerializer(serializers.ModelSerializer):
 		if obj.vita_notturna == 1: tags.append('vita notturna')
 		if obj.featured == 1: tags.append('featured')
 		return tags
+
+
+class ValutazioneSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = Valutazione
+		fields = ('mood', 'companionship', 'place','rating')

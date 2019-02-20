@@ -11,7 +11,7 @@ import datedelta
 from .common import lightfm_manager, constant
 #from recommender_webapp.models import Comune, Distanza, Place, Mood, Companionship, Event
 from .models import Place, Mood, Companionship, Valutazione, Utente, Comune, Event, Distanza, PrevisioniEventi, PrevisioniComuni, WeatherConditions
-from .serializers import UtenteSerializer, PlaceSerializer, EventSerializer
+from .serializers import UtenteSerializer, PlaceSerializer, EventSerializer, ValutazioneSerializer
 
 
 def addUserDb(username, location):
@@ -22,6 +22,49 @@ def addUserDb(username, location):
 
 
 # Create your views here.
+class getRatings (APIView):
+    def post(self, request, *args, **kwargs):
+        username = str(request.data.get('username'))
+
+        users = Utente.objects.filter(username=username)
+        active_user = users[0]
+        user_id = active_user.id
+        first_config_done = active_user.first_configuration
+
+        valutazioni = Valutazione.objects.filter(user=active_user)
+        n_angry_withFriends = 0
+        n_angry_alone = 0
+        n_joyful_withFriends = 0
+        n_joyful_alone = 0
+        n_sad_withFriends = 0
+        n_sad_alone = 0
+
+        for v in valutazioni:
+            if v.mood == "angry":
+                if v.companionship == "alone":
+                    n_angry_alone = n_angry_alone + 1
+                else:
+                    n_angry_withFriends = n_angry_withFriends + 1
+            elif v.mood == "joyful":
+                if v.companionship == "alone":
+                    n_joyful_alone = n_joyful_alone + 1
+                else:
+                    n_joyful_withFriends = n_joyful_withFriends + 1
+            else:
+                if v.companionship == "alone":
+                    n_sad_alone = n_sad_alone + 1
+                else:
+                    n_sad_withFriends = n_sad_withFriends +1
+
+        serializer = ValutazioneSerializer(instance=valutazioni, many=True)
+        output = {"first_config_done":first_config_done, "n_angry_withFriends":n_angry_withFriends,
+        "n_angry_alone":n_angry_alone, "n_joyful_withFriends":n_joyful_withFriends, "n_joyful_alone":n_joyful_alone,
+        "n_sad_withFriends":n_sad_withFriends, "n_sad_alone":n_sad_alone, "valutazioni":serializer.data}
+        return JsonResponse(output,safe=False, status=200)
+
+
+
+
 class addRating (APIView):
     def post(self, request, *args, **kwargs):
         username = str(request.data.get('username'))
