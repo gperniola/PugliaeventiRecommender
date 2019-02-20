@@ -9,15 +9,15 @@ class UtenteSerializer(serializers.ModelSerializer):
 		fields = ('id', 'username', 'location', 'first_configuration')
 
 class PlaceSerializer(serializers.ModelSerializer):
-	distanza = serializers.SerializerMethodField('get_distanza_AB')
-	centro_distanza = serializers.SerializerMethodField('get_centro')
+	#distanza = serializers.SerializerMethodField('get_distanza_AB')
+	#centro_distanza = serializers.SerializerMethodField('get_centro')
 	tags = serializers.SerializerMethodField('get_taglist')
 	eventi_programmati = serializers.SerializerMethodField('get_eventi')
 	valutato = serializers.SerializerMethodField('get_is_valutato')
 
 	class Meta:
 		model = Place
-		fields = ('placeId', 'name','tipo', 'location', 'indirizzo', 'location', 'telefono' ,'sitoweb', 'chiusura', 'link', 'distanza', 'centro_distanza', 'tags', 'eventi_programmati', 'valutato')
+		fields = ('placeId', 'name','tipo', 'location', 'indirizzo', 'location', 'telefono' ,'sitoweb', 'chiusura', 'link', 'tags', 'eventi_programmati', 'valutato')
 
 	def get_centro(self,obj):
 		user_location = self.context.get("user_location")
