@@ -22,6 +22,24 @@ def addUserDb(username, location):
 
 
 # Create your views here.
+class addRating (APIView):
+    def post(self, request, *args, **kwargs):
+        username = str(request.data.get('username'))
+        place_id = int(request.data.get('place-id'))
+        mood = str(request.data.get('emotion'))
+        companionship = str(request.data.get('companionship'))
+
+        users = Utente.objects.filter(username=username)
+
+        user_id = users[0].id
+        user_context_id = str(user_id + 100) + str(Mood[mood].value) + str(Companionship[companionship].value)
+
+        place = Place.objects.filter(placeId=place_id)
+        valutazione = Valutazione.create(users[0],mood,companionship,place[0])
+        valutazione.save()
+
+        lightfm_manager.add_rating(user_context_id, place_id, 3)
+        return Response(status=201)
 
 class getAllPlaces(APIView):
     def post(self, request, *args, **kwargs):
@@ -59,11 +77,11 @@ class getAllPlaces(APIView):
                 for p in filtered_places:
                     if(Event.objects.filter(place=p.name, date_to__gte=date_today).exists()):
                         places_with_events.append(p.placeId)
-                        print(str(p.placeId) + " has events")
+                        #print(str(p.placeId) + " has events")
                 filtered_places = filtered_places.filter(placeId__in=places_with_events)
 
         serializer = PlaceSerializer(instance=filtered_places, many=True, context={'user_location':location, 'user_id':user_id})
-        return JsonResponse(serializer.data,safe=False, status=201)
+        return JsonResponse(serializer.data,safe=False, status=200)
 
 
 
@@ -192,12 +210,13 @@ class FindPlaceRecommendations(APIView):
         companionship = str(request.data.get('companionship'))
 
         users = Utente.objects.filter(username=username)
-        user_id = users[0].id + 100
+        user_id = users[0].id
 
         if location == '':
             location = users[0].location
             range = 250
 
+        user_context_id = str(user_id + 100) + str(Mood[mood].value) + str(Companionship[companionship].value)
         recs = lightfm_manager.find_recommendations(user_context_id,location,range,1)
         serializer = PlaceSerializer(instance=recs, many=True)
         #json = JSONRenderer().render(serializer.data)
@@ -223,7 +242,7 @@ class FindEventRecommendations(APIView):
         no_weather_data = int(request.data.get('no-weather-data'))
 
         users = Utente.objects.filter(username=username)
-        user_id = users[0].id + 100
+        user_id = users[0].id
 
 
         if location_filter == '':
@@ -232,7 +251,7 @@ class FindEventRecommendations(APIView):
         else:
             location = location_filter
 
-        user_context_id = str(user_id) + str(Mood[mood].value) + str(Companionship[companionship].value)
+        user_context_id = str(user_id + 100) + str(Mood[mood].value) + str(Companionship[companionship].value)
         #recs = lightfm_manager.find_recommendations(user_context_id,location,60,1)
         recommended_events = lightfm_manager.find_events_recommendations(user_context_id,location,range, weather_conditions, no_weather_data)
         #for r in recommended_events:

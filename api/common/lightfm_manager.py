@@ -1,5 +1,7 @@
 import csv
 from datetime import datetime
+from django.db.models import Max
+
 
 from api.common import constant
 from engine import lightfm_pugliaeventi
@@ -22,7 +24,7 @@ def add_user(user_id, user_location,  user_contexts, data):
         contextual_lightfm_user_id = str(lightfm_user_id) + str(user_context.get('mood').value) + str(user_context.get('companionship').value)
 
         # Add user (SPLIT) to users.csv
-        with open(r'engine/data/users.csv', 'a') as f:
+        with open(r'engine/data/users.csv', 'a', newline='') as f:
             writer = csv.writer(f)
             writer.writerow([contextual_lightfm_user_id, user_location, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
@@ -30,7 +32,7 @@ def add_user(user_id, user_location,  user_contexts, data):
         print ("contextual ratings: " + str(contextual_ratings))
 
         # Add ratings to ratings.csv
-        with open(r'engine/data/ratings_train.csv', 'a') as f:
+        with open(r'engine/data/ratings_train.csv', 'a', newline='') as f:
             writer = csv.writer(f)
             for rating in contextual_ratings:
                 print ("writing rating: " +str(rating.rating) + " - place: " + str(rating.place.placeId) + " - id_user: " + str(contextual_lightfm_user_id))
@@ -55,25 +57,31 @@ def add_rating(contextual_lightfm_user_id, place_id, rating):
     max_user_id x max_item_id).
     """
 
+    print("+++ Adding " + str(place_id) + " to user " + str(contextual_lightfm_user_id) + " with rating 3")
     # Add rating to ratings.csv
-    with open(r'engine/data/ratings_train.csv', 'a') as f:
+    with open(r'engine/data/ratings_train.csv', 'a', newline='') as f:
         writer = csv.writer(f)
         writer.writerow([contextual_lightfm_user_id, place_id, rating])
 
     max_user_id = 0
     max_item_id = 0
     # I need the max user ID and the max item ID
-    with open(r'engine/data/users.csv') as csvfile:
+    with open(r'engine/data/users.csv', encoding="utf8", newline='') as csvfile:
         for row in reversed(list(csv.reader(csvfile, delimiter=','))):
             max_user_id = int(row[0])
             break
-    with open(r'engine/data/items.csv') as csvfile:
+    with open(r'engine/data/items.csv', encoding="utf8", newline='') as csvfile:
         for row in reversed(list(csv.reader(csvfile, delimiter=','))):
             max_item_id = int(row[0])
             break
 
+    items = Place.objects.all()
+    max = items.aggregate(Max('placeId'))
+    max_item_id = int(max['placeId__max'])
+
+    print("max user id: " + str(max_user_id) + "  max item id: " + str(max_item_id))
     # Add new rating to LightFM model
-    lightfm_pugliaeventi.add_rating_to_model(max_user_id, max_item_id, contextual_lightfm_user_id, place_id, rating)
+    lightfm_pugliaeventi.add_rating_to_model(int(max_user_id), int(max_item_id), int(contextual_lightfm_user_id), int(place_id), int(rating))
 
 
 def find_recommendations(user, user_location, distance, any_events):
