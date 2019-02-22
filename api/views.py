@@ -22,6 +22,42 @@ def addUserDb(username, location):
 
 
 # Create your views here.
+class getUserConfig(APIView):
+    def post(self, request, *args, **kwargs):
+        username = str(request.data.get('username'))
+        users = Utente.objects.filter(username=username)
+        active_user = users[0]
+        return JsonResponse({"first_config_done": active_user.first_configuration },safe=False, status=200)
+
+
+def checkNumValutazioni(valutazioni):
+    n_angry_withFriends = 0
+    n_angry_alone = 0
+    n_joyful_withFriends = 0
+    n_joyful_alone = 0
+    n_sad_withFriends = 0
+    n_sad_alone = 0
+
+    for v in valutazioni:
+        if v.mood == "angry":
+            if v.companionship == "alone":
+                n_angry_alone = n_angry_alone + 1
+            else:
+                n_angry_withFriends = n_angry_withFriends + 1
+        elif v.mood == "joyful":
+            if v.companionship == "alone":
+                n_joyful_alone = n_joyful_alone + 1
+            else:
+                n_joyful_withFriends = n_joyful_withFriends + 1
+        else:
+            if v.companionship == "alone":
+                n_sad_alone = n_sad_alone + 1
+            else:
+                n_sad_withFriends = n_sad_withFriends + 1
+
+    return (n_angry_withFriends, n_angry_alone, n_joyful_withFriends, n_joyful_alone, n_sad_withFriends, n_sad_alone)
+
+
 class getRatings (APIView):
     def post(self, request, *args, **kwargs):
         username = str(request.data.get('username'))
@@ -32,29 +68,7 @@ class getRatings (APIView):
         first_config_done = active_user.first_configuration
 
         valutazioni = Valutazione.objects.filter(user=active_user)
-        n_angry_withFriends = 0
-        n_angry_alone = 0
-        n_joyful_withFriends = 0
-        n_joyful_alone = 0
-        n_sad_withFriends = 0
-        n_sad_alone = 0
-
-        for v in valutazioni:
-            if v.mood == "angry":
-                if v.companionship == "alone":
-                    n_angry_alone = n_angry_alone + 1
-                else:
-                    n_angry_withFriends = n_angry_withFriends + 1
-            elif v.mood == "joyful":
-                if v.companionship == "alone":
-                    n_joyful_alone = n_joyful_alone + 1
-                else:
-                    n_joyful_withFriends = n_joyful_withFriends + 1
-            else:
-                if v.companionship == "alone":
-                    n_sad_alone = n_sad_alone + 1
-                else:
-                    n_sad_withFriends = n_sad_withFriends +1
+        (n_angry_withFriends, n_angry_alone, n_joyful_withFriends, n_joyful_alone, n_sad_withFriends, n_sad_alone) = checkNumValutazioni(valutazioni)
 
         serializer = ValutazioneSerializer(instance=valutazioni, many=True)
         output = {"first_config_done":first_config_done, "n_angry_withFriends":n_angry_withFriends,
@@ -81,7 +95,36 @@ class addRating (APIView):
         valutazione = Valutazione.create(users[0],mood,companionship,place[0])
         valutazione.save()
 
-        lightfm_manager.add_rating(user_context_id, place_id, 3)
+        #aggiungi al modello solo se il modello per l'utente esiste già (ovvero se ha completato la prima configurazione in precedenza)
+        #altrimenti analizza le valutazioni in db per verificare se l'utente ha terminato la configurazione
+        #nel caso abbia valutazioni a sufficienza per completare la configurazione, allora crea li modello utente
+        if  users[0].first_configuration:
+            print("+++ adding rating to user model")
+            lightfm_manager.add_rating(user_context_id, place_id, 3)
+        else:
+            valutazioni_utente = Valutazione.objects.filter(user=users[0])
+            (n_angry_withFriends, n_angry_alone, n_joyful_withFriends, n_joyful_alone, n_sad_withFriends, n_sad_alone) = checkNumValutazioni(valutazioni_utente)
+
+            if n_angry_withFriends >= constant.RATINGS_PER_CONTEXT_CONF and n_angry_alone >= constant.RATINGS_PER_CONTEXT_CONF and n_joyful_withFriends >= constant.RATINGS_PER_CONTEXT_CONF and \
+                n_joyful_alone >= constant.RATINGS_PER_CONTEXT_CONF and n_sad_withFriends >= constant.RATINGS_PER_CONTEXT_CONF and  n_sad_alone >= constant.RATINGS_PER_CONTEXT_CONF:
+
+                users[0].first_configuration = True
+                user_zero = Utente.objects.get(username=username)
+                user_zero.first_configuration = True
+                user_zero.save()
+
+                user_contexts = []
+                user_contexts.append({'mood': Mood.joyful, 'companionship': Companionship.withFriends})
+                user_contexts.append({'mood': Mood.joyful, 'companionship': Companionship.alone})
+                user_contexts.append({'mood': Mood.angry, 'companionship': Companionship.withFriends})
+                user_contexts.append({'mood': Mood.angry, 'companionship': Companionship.alone})
+                user_contexts.append({'mood': Mood.sad, 'companionship': Companionship.withFriends})
+                user_contexts.append({'mood': Mood.sad, 'companionship': Companionship.alone})
+
+                print("+++ creating new user model")
+                lightfm_manager.add_user(users[0].id, users[0].location, user_contexts, valutazioni_utente)
+
+
         return Response(status=201)
 
 class getAllPlaces(APIView):
