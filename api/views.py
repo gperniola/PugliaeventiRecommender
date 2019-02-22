@@ -20,6 +20,42 @@ def addUserDb(username, location):
     return str(utente.id)
 
 
+class getComuni(APIView):
+    def get(self, request, letters):
+        input = letters;
+
+        comuni = Distanza.objects.filter(cittaA__icontains=input)
+        comuni_list = comuni.order_by().values_list('cittaA').distinct()
+        comuni_nomi = []
+        for c in comuni_list:
+            comuni_nomi.append(c[0])
+
+        return JsonResponse(comuni_nomi,safe=False, status=200)
+
+class getEventi(APIView):
+    def get(self, request, letters):
+        input = letters;
+
+        eventi = Event.objects.filter(title__icontains=input)
+        eventi_list = comuni.order_by().values_list('title').distinct()
+        eventi_nomi = []
+        for c in eventi_list:
+            eventi_nomi.append(c[0])
+
+        return JsonResponse(eventi_nomi,safe=False, status=200)
+
+class getLuoghi(APIView):
+    def get(self, request, letters):
+        input = letters;
+
+        luoghi = Place.objects.filter(name__icontains=input)
+        luoghi_list = luoghi.order_by().values_list('name').distinct()
+        luoghi_nomi = []
+        for c in luoghi_list:
+            luoghi_nomi.append(c[0])
+
+        return JsonResponse(luoghi_nomi,safe=False, status=200)
+
 
 # Create your views here.
 class getUserConfig(APIView):
