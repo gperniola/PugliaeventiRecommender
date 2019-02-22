@@ -163,7 +163,6 @@ class getAllPlaces(APIView):
                 for p in filtered_places:
                     if(Event.objects.filter(place=p.name, date_to__gte=date_today).exists()):
                         places_with_events.append(p.placeId)
-                        #print(str(p.placeId) + " has events")
                 filtered_places = filtered_places.filter(placeId__in=places_with_events)
 
         serializer = PlaceSerializer(instance=filtered_places, many=True, context={'user_location':location, 'user_id':user_id})
@@ -202,7 +201,6 @@ class getAllEvents(APIView):
         filtered_events = Event.objects.filter(date_to__gte=date_today, date_from__lte=max_start_date).order_by('date_to')
         '''
         filtered_events = Event.objects.filter(date_to__gte=start_date, date_from__lte=end_date).order_by('date_to')
-        print(len(filtered_events))
         #location and range filter
         locations_in_range = []
         if location != '':
@@ -221,7 +219,6 @@ class getAllEvents(APIView):
             if weather_conditions == 2: max_weather = 3 #max coperto
             if weather_conditions == 3: max_weather = 2 #max poco nuvoloso
             if weather_conditions == 4: max_weather = 1 #max sereno
-            print("no_we: " + str(no_weather_data))
 
             for ev in filtered_events:
                 #prev = ev.previsioni_evento.all()
@@ -229,18 +226,13 @@ class getAllEvents(APIView):
                 prev = []
                 for p in previsioni_unfiltered:
                     if p.idprevisione.data.date() >= start_date and p.idprevisione.data.date() <= end_date:
-                        print ("adding " + str(p.idprevisione))
                         prev.append(p.idprevisione) #added
                 if not prev and no_weather_data == 1: weather_filtered_events.append(ev) #aggiungi eventi senza previsioni meteo
                 else:
                     for p in prev:
-                        #print(str(p.idprevisione.get_condizioni().value))
                         if p.get_condizioni().value <= max_weather: #rmved
                             weather_filtered_events.append(ev)
-                            print(p.data) #rmved
                             break
-                        else:
-                            print("discarded: " + str(ev.eventId) + " " + str(p.get_condizioni())) #rmvd
         else:
             weather_filtered_events = filtered_events
 
