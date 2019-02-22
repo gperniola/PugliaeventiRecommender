@@ -25,7 +25,7 @@ class getComuni(APIView):
         input = letters;
 
         comuni = Distanza.objects.filter(cittaA__icontains=input)
-        comuni_list = comuni.order_by().values_list('cittaA').distinct()
+        comuni_list = comuni.order_by().values_list('cittaA').distinct()[:15]
         comuni_nomi = []
         for c in comuni_list:
             comuni_nomi.append(c[0])
@@ -37,7 +37,7 @@ class getEventi(APIView):
         input = letters;
 
         eventi = Event.objects.filter(title__icontains=input)
-        eventi_list = comuni.order_by().values_list('title').distinct()
+        eventi_list = comuni.order_by().values_list('title').distinct()[:15]
         eventi_nomi = []
         for c in eventi_list:
             eventi_nomi.append(c[0])
@@ -49,7 +49,7 @@ class getLuoghi(APIView):
         input = letters;
 
         luoghi = Place.objects.filter(name__icontains=input)
-        luoghi_list = luoghi.order_by().values_list('name').distinct()
+        luoghi_list = luoghi.order_by().values_list('name').distinct()[:15]
         luoghi_nomi = []
         for c in luoghi_list:
             luoghi_nomi.append(c[0])
@@ -167,6 +167,7 @@ class getAllPlaces(APIView):
     def post(self, request, *args, **kwargs):
         username = str(request.data.get('username'))
         location = str(request.data.get('location'))
+        place_name = str(request.data.get('luogo'))
         range = int(request.data.get('range'))
         only_with_events = int(request.data.get('only-with-events'))
         only_rated_places = int(request.data.get('only-rated-places'))
@@ -176,30 +177,33 @@ class getAllPlaces(APIView):
         if location == '':
             location = users[0].location
 
-        if only_rated_places == 1:
-            eval_queryset = Valutazione.objects.filter(user=user_id)
-            user_eval_places = []
-            for e in eval_queryset:
-                user_eval_places.append(e.place.placeId)
-            filtered_places = Place.objects.filter(placeId__in=user_eval_places)
-
+        if place_name != "":
+            filtered_places = Place.objects.filter(name__icontains=place_name)[:100]
         else:
-            locations_in_range = []
-            if location != '':
-                locations_in_range.append(location)
-                if range > 0:
-                    locations_queryset = Distanza.objects.filter(cittaA=location,distanza__lte=range).order_by('distanza')
-                    for loc in locations_queryset:
-                        locations_in_range.append(loc.cittaB)
-                filtered_places = Place.objects.filter(location__in=locations_in_range).order_by('location', 'name')
+            if only_rated_places == 1:
+                eval_queryset = Valutazione.objects.filter(user=user_id)
+                user_eval_places = []
+                for e in eval_queryset:
+                    user_eval_places.append(e.place.placeId)
+                filtered_places = Place.objects.filter(placeId__in=user_eval_places)
 
-            if only_with_events == 1:
-                date_today = datetime.today().date()
-                places_with_events = []
-                for p in filtered_places:
-                    if(Event.objects.filter(place=p.name, date_to__gte=date_today).exists()):
-                        places_with_events.append(p.placeId)
-                filtered_places = filtered_places.filter(placeId__in=places_with_events)
+            else:
+                locations_in_range = []
+                if location != '':
+                    locations_in_range.append(location)
+                    if range > 0:
+                        locations_queryset = Distanza.objects.filter(cittaA=location,distanza__lte=range).order_by('distanza')
+                        for loc in locations_queryset:
+                            locations_in_range.append(loc.cittaB)
+                    filtered_places = Place.objects.filter(location__in=locations_in_range).order_by('location', 'name')
+
+                if only_with_events == 1:
+                    date_today = datetime.today().date()
+                    places_with_events = []
+                    for p in filtered_places:
+                        if(Event.objects.filter(place=p.name, date_to__gte=date_today).exists()):
+                            places_with_events.append(p.placeId)
+                    filtered_places = filtered_places.filter(placeId__in=places_with_events)
 
         serializer = PlaceSerializer(instance=filtered_places, many=True, context={'user_location':location, 'user_id':user_id})
         return JsonResponse(serializer.data,safe=False, status=200)
