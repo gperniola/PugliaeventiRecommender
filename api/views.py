@@ -4,11 +4,13 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.parsers import JSONParser
 
 from datetime import datetime, timedelta
 import datedelta
 
 from .common import lightfm_manager, constant
+from RuleBasedRecommender import Recommender
 #from recommender_webapp.models import Comune, Distanza, Place, Mood, Companionship, Event
 from .models import Place, Mood, Companionship, Valutazione, Utente, Comune, Event, Distanza, PrevisioniEventi, PrevisioniComuni, WeatherConditions
 from .serializers import UtenteSerializer, PlaceSerializer, EventSerializer, ValutazioneSerializer
@@ -347,6 +349,22 @@ class FindPlaceRecommendations(APIView):
         #return JsonResponse({'foo':'bar'})
         #return Response(data={"recs":recs})
         #return Response(data={"foo":str(recs)})
+
+
+class RuleBasedRecommender(APIView):
+    parser_classes = (JSONParser,)
+    def post(self,request,*args,**kwargs):
+        data = request.data["data"]
+        location_filter = data["location"]
+        range = data["range"]
+        weather = data["weather"]
+        no_weather_data = data["no-weather-data"]
+
+        recommended_events = Recommender.find_recommendations(data, location_filter, range, weather, no_weather_data)
+
+        serializer = EventSerializer(instance=recommended_events, many=True, context={'user_location':location_filter})
+        return JsonResponse(serializer.data,safe=False, status=201)
+
 
 class FindEventRecommendations(APIView):
     def post(self,request,*args,**kwargs):
