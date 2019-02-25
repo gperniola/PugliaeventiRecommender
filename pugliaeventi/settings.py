@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
 
 # Application definition
 
@@ -48,6 +50,8 @@ INSTALLED_APPS = [
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -55,18 +59,16 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-	'corsheaders.middleware.CorsMiddleware',  
-    'django.middleware.common.CommonMiddleware',  
 ]
 
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_WHITELIST = (
-    'localhost:8080',
-)
-CORS_ORIGIN_REGEX_WHITELIST = (
-    'localhost:8080',
-)
+
+#CORS_ALLOW_CREDENTIALS = True
+#CORS_ORIGIN_WHITELIST = (
+#    'localhost:8080',
+#)
+#CORS_ORIGIN_REGEX_WHITELIST = (
+#    'localhost:8080',
+#)
 
 ROOT_URLCONF = 'pugliaeventi.urls'
 

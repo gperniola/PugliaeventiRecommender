@@ -17,6 +17,7 @@ def add_user(user_id, user_location,  user_contexts, data):
     """
 
     lightfm_user_id = constant.DJANGO_USER_ID_BASE_START_LIGHTFM + user_id
+    print("user_id: "  + str(user_id) + " --- django id: " + str(lightfm_user_id) + " --- user_loc: " + str(user_location) + " --- user_contexts: " + str(user_contexts) + " --- data: " + str(data))
     for user_context in user_contexts:
         contextual_lightfm_user_id = str(lightfm_user_id) + str(user_context.get('mood').value) + str(user_context.get('companionship').value)
 
@@ -26,11 +27,13 @@ def add_user(user_id, user_location,  user_contexts, data):
             writer.writerow([contextual_lightfm_user_id, user_location, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
         contextual_ratings = data.filter(mood=user_context.get('mood').name, companionship=user_context.get('companionship').name)
+        print ("contextual ratings: " + str(contextual_ratings))
 
         # Add ratings to ratings.csv
         with open(r'engine/data/ratings_train.csv', 'a') as f:
             writer = csv.writer(f)
             for rating in contextual_ratings:
+                print ("writing rating: " +str(rating.rating) + " - place: " + str(rating.place.placeId) + " - id_user: " + str(contextual_lightfm_user_id))
                 writer.writerow([contextual_lightfm_user_id, rating.place.placeId, rating.rating])
 
     # LightFM model recreation - NEW USER SIGN UP-> NEW MODEL
@@ -88,11 +91,16 @@ def find_recommendations(user, user_location, distance, any_events):
     caricato al momento dell'avvio di Django all'interno del modulo initializer.py. In questo modo è possibile
     restituire i risultati di raccomandazione in modo più efficiente.
     """
-
+    print("PAGE IS: LIGHTFM_MANAGER.PY >> find_recommendations(" + str(user) + ", " + str(user_location) + ", " + str(distance) + ", " + str(any_events) + ")")
     recommended_places = []
+    print("find_recommendations.calling data_loader.data_in_memory for places")
     places_dict = data_loader.data_in_memory['places_dict']
     user = int(user) - 1   # LightFM uses a zero-based indexing
+    print("find_recommendations.calling lightfm_pugliaeventi.learn_model on model and data")
     model, data = lightfm_pugliaeventi.learn_model()
+    print("MODEL: " + str(model))
+    print("DATA: " + str(data))
+    print("find_recommendations.calling lightfm_pugliaeventi.find_recommendations on user, model and data")
     recommendations = lightfm_pugliaeventi.find_recommendations(user, model, data)[:constant.NUM_RECOMMENDATIONS_FROM_LIGHTFM]
     recommendation_objects = []
     for index in recommendations:
@@ -122,4 +130,5 @@ def find_recommendations(user, user_location, distance, any_events):
         for place in places_to_show:
             recommended_places.append(place)
 
+    print("find_recommendations. returning recommended_places")
     return recommended_places
