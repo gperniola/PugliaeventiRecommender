@@ -19,7 +19,7 @@ def add_user(user_id, user_location,  user_contexts, data):
     """
 
     lightfm_user_id = constant.DJANGO_USER_ID_BASE_START_LIGHTFM + user_id
-    print("user_id: "  + str(user_id) + " --- django id: " + str(lightfm_user_id) + " --- user_loc: " + str(user_location) + " --- user_contexts: " + str(user_contexts) + " --- data: " + str(data))
+    print("+++++[LIGHTFM] adding model user_id: "  + str(user_id) + " --- django id: " + str(lightfm_user_id) + " --- user_loc: " + str(user_location) + " --- user_contexts: " + str(user_contexts) + " --- data: " + str(data))
     for user_context in user_contexts:
         contextual_lightfm_user_id = str(lightfm_user_id) + str(user_context.get('mood').value) + str(user_context.get('companionship').value)
 
@@ -29,13 +29,13 @@ def add_user(user_id, user_location,  user_contexts, data):
             writer.writerow([contextual_lightfm_user_id, user_location, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
         contextual_ratings = data.filter(mood=user_context.get('mood').name, companionship=user_context.get('companionship').name)
-        print ("contextual ratings: " + str(contextual_ratings))
+        #print ("contextual ratings: " + str(contextual_ratings))
 
         # Add ratings to ratings.csv
         with open(r'engine/data/ratings_train.csv', 'a', newline='') as f:
             writer = csv.writer(f)
             for rating in contextual_ratings:
-                print ("writing rating: " +str(rating.rating) + " - place: " + str(rating.place.placeId) + " - id_user: " + str(contextual_lightfm_user_id))
+                #print ("writing rating: " +str(rating.rating) + " - place: " + str(rating.place.placeId) + " - id_user: " + str(contextual_lightfm_user_id))
                 writer.writerow([contextual_lightfm_user_id, rating.place.placeId, rating.rating])
 
     # LightFM model recreation - NEW USER SIGN UP-> NEW MODEL
@@ -57,7 +57,7 @@ def add_rating(contextual_lightfm_user_id, place_id, rating):
     max_user_id x max_item_id).
     """
 
-    print("+++ Adding " + str(place_id) + " to user " + str(contextual_lightfm_user_id) + " with rating 3")
+    print("+++++[LIGHTFM] adding " + str(place_id) + " to user " + str(contextual_lightfm_user_id) + " with rating 3")
     # Add rating to ratings.csv
     with open(r'engine/data/ratings_train.csv', 'a', newline='') as f:
         writer = csv.writer(f)
@@ -79,7 +79,7 @@ def add_rating(contextual_lightfm_user_id, place_id, rating):
     max = items.aggregate(Max('placeId'))
     max_item_id = int(max['placeId__max'])
 
-    print("max user id: " + str(max_user_id) + "  max item id: " + str(max_item_id))
+    #print("max user id: " + str(max_user_id) + "  max item id: " + str(max_item_id))
     # Add new rating to LightFM model
     lightfm_pugliaeventi.add_rating_to_model(int(max_user_id), int(max_item_id), int(contextual_lightfm_user_id), int(place_id), int(rating))
 
@@ -99,16 +99,16 @@ def find_recommendations(user, user_location, distance, any_events):
     caricato al momento dell'avvio di Django all'interno del modulo initializer.py. In questo modo è possibile
     restituire i risultati di raccomandazione in modo più efficiente.
     """
-    print("PAGE IS: LIGHTFM_MANAGER.PY >> find_recommendations(" + str(user) + ", " + str(user_location) + ", " + str(distance) + ", " + str(any_events) + ")")
+    #print("PAGE IS: LIGHTFM_MANAGER.PY >> find_recommendations(" + str(user) + ", " + str(user_location) + ", " + str(distance) + ", " + str(any_events) + ")")
     recommended_places = []
-    print("find_recommendations.calling data_loader.data_in_memory for places")
+    #print("find_recommendations.calling data_loader.data_in_memory for places")
     places_dict = data_loader.data_in_memory['places_dict']
     user = int(user) - 1   # LightFM uses a zero-based indexing
-    print("find_recommendations.calling lightfm_pugliaeventi.learn_model on model and data")
+    #print("find_recommendations.calling lightfm_pugliaeventi.learn_model on model and data")
     model, data = lightfm_pugliaeventi.learn_model()
     #print("MODEL: " + str(model))
     #print("DATA: " + str(data))
-    print("find_recommendations.calling lightfm_pugliaeventi.find_recommendations on user, model and data")
+    #print("find_recommendations.calling lightfm_pugliaeventi.find_recommendations on user, model and data")
     recommendations = lightfm_pugliaeventi.find_recommendations(user, model, data)[:constant.NUM_RECOMMENDATIONS_FROM_LIGHTFM]
     recommendation_objects = []
     for index in recommendations:
@@ -117,7 +117,7 @@ def find_recommendations(user, user_location, distance, any_events):
             recommendation_objects.append(places_dict[place_id])
 
     ## DEBUG:
-    print ("+ N. of places found: " + str(len(recommendation_objects)))
+    print ("+++++[LIGHTFM]  N. of places found: " + str(len(recommendation_objects)))
     if any_events:
         recommendations_with_events = []
         for place in recommendation_objects:
@@ -127,7 +127,7 @@ def find_recommendations(user, user_location, distance, any_events):
 
         recommendation_objects = recommendations_with_events
     ## DEBUG:
-    print ("+ N. of places found with current avaiable events: " + str(len(recommendation_objects)))
+    print ("+++++[LIGHTFM]  N. of places found with current available events: " + str(len(recommendation_objects)))
 
     if distance:
         locations_in_range = [distance[0] for distance in
@@ -145,8 +145,8 @@ def find_recommendations(user, user_location, distance, any_events):
             recommended_places.append(place)
 
     ## DEBUG:
-    print("+ N. of places found with events and in " + str(distance) +"km range: " + str(len(recommended_places)))
-    print("+ Returning recommended_places")
+    print("++++++[LIGHTFM]  N. of places found with events and in " + str(distance) +"km range: " + str(len(recommended_places)))
+    print("++++++[LIGHTFM]  Returning recommended_places")
 
     ####### DEBUG EVENTI ##########
     i = 1
@@ -187,15 +187,14 @@ def find_events_recommendations(user, user_location, distance, weather_condition
 
 
     ## DEBUG:
-    print ("+ N. of places found: " + str(len(recommendation_objects)))
+    print ("+++++[LIGHTFM]  N. of places found: " + str(len(recommendation_objects)))
     recommendations_with_events = []
     for place in recommendation_objects:
         if Event.objects.filter(place=place.name, date_to__gte=datetime.today().date()).exists():
-            #if Event.objects.filter(place=place.name).exists():
             recommendations_with_events.append(place)
     recommendation_objects = recommendations_with_events
     ## DEBUG:
-    print ("+ N. of places found with current available events: " + str(len(recommendation_objects)))
+    print ("+++++[LIGHTFM]  N. of places found with current available events: " + str(len(recommendation_objects)))
 
 
 
@@ -214,7 +213,7 @@ def find_events_recommendations(user, user_location, distance, weather_condition
             recommended_places.append(place)
 
     ## DEBUG:
-    print("+ N. of places found with events and in " + str(distance) +"km range: " + str(len(recommended_places)))
+    print("+++++[LIGHTFM]  N. of places found with events and in " + str(distance) +"km range: " + str(len(recommended_places)))
 
 
 
@@ -223,8 +222,7 @@ def find_events_recommendations(user, user_location, distance, weather_condition
 
     events = []
     for place in recommended_places:
-        #max 3 events per place?
-            for ev in Event.objects.filter(place=place.name, date_to__gte=datetime.today().date()):
+            for ev in Event.objects.filter(place=place.name, date_to__gte=datetime.today().date()).order_by('date_to'):
                 events.append(ev)
 
 
@@ -237,7 +235,7 @@ def find_events_recommendations(user, user_location, distance, weather_condition
 
 
     ## DEBUG:
-    print("+ N. of found events without weather filtering: " + str(len(events)))
+    print("+++++[LIGHTFM]  N. of found events without weather filtering: " + str(len(events)))
     weather_filtered_events = []
     if weather_conditions > 0:
         max_weather = -1
@@ -252,42 +250,47 @@ def find_events_recommendations(user, user_location, distance, weather_condition
                 prev = []
                 for p in previsioni_unfiltered:
                         prev.append(p.idprevisione) #added
-                if not prev and no_weather_data == 1: weather_filtered_events.append(ev) #aggiungi eventi senza previsioni meteo
+                if not prev and no_weather_data == 1: weather_filtered_events.append(ev.eventId) #aggiungi eventi senza previsioni meteo
                 else:
                     for p in prev:
                         #print(str(p.idprevisione.get_condizioni().value))
                         if p.get_condizioni().value <= max_weather: #rmved
-                            weather_filtered_events.append(ev)
+                            weather_filtered_events.append(ev.eventId)
                             break
     else:
-        weather_filtered_events = events
+        for e in events:
+            weather_filtered_events.append(e.eventId)
     ## DEBUG:
-    print("+ N. of events after weather filtering: " + str(len(weather_filtered_events)))
-    ####### DEBUG EVENTI ##########
-    i = 1
-    for ev in weather_filtered_events:
-        print(str(i) + ") +++ " + ev.title + "|" + ev.place + "|" + str(ev.comune) + "|" + str(ev.date_from) + " - " + str(ev.date_to))
-        i = i + 1
-    ###############################
+    print("+++++[LIGHTFM]  N. of events after weather filtering: " + str(len(weather_filtered_events)))
+
+
+    events = Event.objects.filter(eventId__in=weather_filtered_events)
 
     recommended_events = []
-    #for place in recommended_places:
-        # MAX 2 EVENTS FOR EACH PLACE
-    #    events = weather_filtered_events.filter(place=place.name, date_to__gte=datetime.today().date())[:2]
-    #for event in events:
-    for event in weather_filtered_events:
-        recommended_events.append(event)
-        if len(recommended_events) == constant.NUM_RECOMMENDATIONS_TO_SHOW:
-            break
+    for place in recommended_places:
+        if len(events) > 20:
+            queryset_events = events.filter(place=place.name)[:2]
+        elif len(weather_filtered_events) > 10:
+            queryset_events = events.filter(place=place.name)[:3]
+        else:
+            queryset_events = events.filter(place=place.name)
+        for e in queryset_events:
+            recommended_events.append(e)
 
-    print("+ N. of recommended events found: " + str(len(recommended_events)))
-    print("+ Returning recommended_events")
+
+    #for event in weather_filtered_events:
+    #    recommended_events.append(event)
+    #    if len(recommended_events) == constant.NUM_RECOMMENDATIONS_TO_SHOW:
+    #        break
+
+    #print("+++++[LIGHTFM]  N. of recommended events found: " + str(len(recommended_events)))
+    #print("+ Returning recommended_events")
 
     ####### DEBUG EVENTI ##########
-    #i = 1
-    #for ev in recommended_events:
-    #    print(str(i) + ") +++ " + ev.title + "|" + ev.place + "|" + str(ev.comune) + "|" + str(ev.date_from) + " - " + str(ev.date_to))
-    #    i = i + 1
+    i = 1
+    for ev in recommended_events:
+        print(str(i) + ") +++ " + ev.title + "|" + ev.place + "|" + str(ev.comune) + "|" + str(ev.date_from) + " - " + str(ev.date_to))
+        i = i + 1
 
     #for place in recommended_places:
     #    if Event.objects.filter(place=place.name, date_to__gte=datetime.today().date()).exists():
@@ -303,4 +306,4 @@ def find_events_recommendations(user, user_location, distance, weather_condition
     #print(len(Event.objects.filter(place__exact='')))
     #print(len(Event.objects.exclude(place__exact='')))
 
-    return recommended_events
+    return recommended_events[:constant.NUM_RECOMMENDATIONS_TO_SHOW]

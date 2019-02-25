@@ -69,7 +69,7 @@ def prefiltering (user_location, distance, weather_conditions, no_weather_data):
     ## DEBUG:
     print("+++++[RULEBASED]: N. of events after weather filtering: " + str(len(weather_filtered_events)))
 
-    #recovert to queryset
+    #reconversion to queryset
     events = Event.objects.filter(eventId__in=weather_filtered_events)
 
     return events
@@ -111,11 +111,12 @@ def find_recommendations(data, location_filter, range, weather, no_weather_data)
 
     filtered_events = prefiltering(location_filter, range, weather, no_weather_data)
     recommended_events = []
-
+    resto_inserimenti = 0
     #### RULES
 
     for topic in topics:
-        norm = int(round((topic["count"] * N_OF_RECOMMENDATIONS) / processed_words))
+        norm = int(round((topic["count"] * N_OF_RECOMMENDATIONS) / processed_words)) + resto_inserimenti
+        resto_inserimenti = 0
 
         if topic["name"] == "tech":
             if formula(neu,emp) > 0.5547:
@@ -179,7 +180,7 @@ def find_recommendations(data, location_filter, range, weather, no_weather_data)
                     evs = filtered_events.filter(concerti=1).distinct("title")
 
             else:
-                evs = filtered_events.filter(concerti=1, popolarity__lt=180).distinct("title")
+                evs = filtered_events.filter(concerti=1, popularity__lt=180).distinct("title")
 
 
         elif topic["name"] == "style":
@@ -246,7 +247,11 @@ def find_recommendations(data, location_filter, range, weather, no_weather_data)
         else:
             print("topic not found")
 
+        if len(evs) < norm:
+            resto_inserimenti = norm - len(evs)
+
         evs = evs[:norm]
+        print("+++++[RULEBASED]: N. of events found for topic "+topic["name"]+": " + str(len(evs)) + " (max " + str(norm) + ")")
         for e in evs:
             recommended_events.append(e)
         #recommended_events.sort(key=lambda x: x.date_to)
